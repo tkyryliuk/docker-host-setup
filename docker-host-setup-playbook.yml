@@ -1,0 +1,67 @@
+---
+
+- hosts: all
+
+  vars:
+    # Set Admin pass (change before server setup)
+    admin_user_name: CHANGE_ME
+    admin_user_pass: CHANGE_ME
+    # Can leave as is.
+    docker_compose_version:  1.8.0
+    swapfile_location: /swapfile
+    swapfile_size: 1024M
+    # Security vars.
+    security_ssh_config_path: /etc/ssh/sshd_config
+    security_sshd_name: ssh
+    security_ssh_port: 22
+
+  # --- Support for Ubuntu 16.04 ---
+  # Ansible doesn't support python 3
+  # istalled by default in Ubuntu 16.04.
+  gather_facts: False
+
+  pre_tasks:
+    - name: apt-get update
+      raw: apt-get update -qq
+      when: ansible_python_interpreter is defined
+
+    - name: Install python 2.7
+      raw: apt-get install -qq python2.7
+      when: ansible_python_interpreter is defined
+
+    - name: Gathering facts
+      setup:
+
+  roles:
+    - franklinkim.docker
+    - franklinkim.docker-compose
+    - ansible-swapfile
+
+  tasks:
+    - name: Create Admin sudo user
+      user: name={{ admin_user_name }}
+            state=present
+            append=yes
+            groups="sudo"
+            password={{ admin_user_pass | password_hash('sha512') }}
+
+    # After ansible create user i experienced similar problem:
+    # http://askubuntu.com/questions/325807/arrow-keys-tab-complete-not-working
+    # Below is a small fix:
+    # sudo chsh -s /bin/bash $USERNAME
+    - name: Add Admin user to bash
+      command: chsh -s /bin/bash {{ admin_user_name }}
+
+    - name: Update SSH configuration to be more secure.
+      lineinfile: >
+        dest={{ security_ssh_config_path }}
+        regexp="{{ item.regexp }}"
+        line="{{ item.line }}"
+        state=present
+      with_items:
+        - { regexp: "^PasswordAuthentication", line: "PasswordAuthentication yes" }
+        - { regexp: "^PermitRootLogin", line: "PermitRootLogin no" }
+        - { regexp: "^Port", line: "Port {{ security_ssh_port }}" }
+
+    - name: restart ssh
+      service: "name={{ security_sshd_name }} state=restarted"
