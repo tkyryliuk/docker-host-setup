@@ -3,13 +3,13 @@
 
 Ansible version >= 1.9 required
 
-#### What it does?
-- Install docker and docker-compose
-- Create Swap
+### What it does?
+- Install Docker and Docker compose
+- Create Swapfile
 - Create new sudo user
 - Setup SSH (change port and close access for root user)
 
-##### Installation
+### Installation
 - `clone` this repo locally
 - `cd` to created directory and install Ansible requirements:
 
@@ -17,7 +17,7 @@ Ansible version >= 1.9 required
   
 - Open `docker-host-setup-playbook.yml` file and change installation variables, they are pretty self explainable.
 
-~~~~
+```shell
   # Set Admin pass (change before server setup)
   admin_user_name: CHANGE_ME
   admin_user_pass: CHANGE_ME
@@ -29,16 +29,16 @@ Ansible version >= 1.9 required
   security_ssh_config_path: /etc/ssh/sshd_config
   security_sshd_name: ssh
   security_ssh_port: 22
-~~~~
+```
 
-###### Ubuntu 12.04 - 15.10
+#### Ubuntu 12.04 - 15.10
 - Open `inventory` file and change `0.0.0.0` with your server's ip address.
 - Launch installation process with command:
 
-  `ansible-playbook launch-jenkins-server-playbook.yml -i inventory`
+  `ansible-playbook docker-host-setup-playbook.yml -i inventory`
 
-###### Ubuntu 16.04
+#### Ubuntu 16.04
 - Open `inventory16.04` file and change `0.0.0.0` with your server's ip address.
 - Launch installation process with command:
 
-    `ansible-playbook launch-jenkins-server-playbook.yml -i inventory16.04`
+    `ansible-playbook docker-host-setup-playbook.yml -i inventory16.04`
